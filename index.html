@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Escudo Anti-Fraude</title>
+<meta name="description" content="Revisa si un enlace o mensaje es una estafa. Hecha para adultos mayores.">
+<meta name="theme-color" content="#12263A">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Escudo">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --ink:#12263A; --paper:#F1F5F9; --card:#fff; --line:#B8C4D0; --muted:#41505F;
+  --red:#B3001B; --amber:#FFC933; --amber-ink:#2B1D00; --green:#0B7A3B; --blue:#0B4F9C;
+  --fs:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:var(--fs)}
+body{font-family:Verdana,Tahoma,"Segoe UI",sans-serif;background:var(--paper);color:var(--ink);line-height:1.5;
+  padding-bottom:env(safe-area-inset-bottom,0)}
+header{background:var(--ink);color:#fff;padding:calc(18px + env(safe-area-inset-top,0)) 20px 20px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.pill{display:inline-flex;align-items:center;gap:8px;font-size:.75rem;background:#23405C;padding:6px 12px;border-radius:99px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--amber)}
+.dot.on{background:#4ADE80}
+.sizebtn{font:inherit;font-size:.8rem;font-weight:bold;color:#fff;background:transparent;border:2px solid #fff;border-radius:10px;padding:6px 12px;cursor:pointer}
+h1{font-size:1.7rem;line-height:1.2}
+header p{font-size:.95rem;margin-top:6px;color:#D5E1EC}
+main{max-width:640px;margin:0 auto;padding:20px}
+label.t{display:block;font-weight:bold;font-size:1.05rem;margin-bottom:8px}
+textarea{width:100%;height:150px;font:inherit;font-size:1.05rem;padding:14px;border:3px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);resize:vertical}
+textarea:focus,button:focus-visible{outline:4px solid var(--blue);outline-offset:2px}
+.btn{display:block;width:100%;min-height:64px;margin-top:12px;font:inherit;font-size:1.1rem;font-weight:bold;border:none;border-radius:14px;cursor:pointer;padding:12px}
+.btn:active{transform:scale(.98)}
+.main{background:var(--blue);color:#fff}
+.alt{background:var(--card);color:var(--ink);border:3px solid var(--ink)}
+.quiet{background:transparent;color:var(--muted);border:2px solid var(--line);min-height:52px;font-size:.9rem}
+.note{font-size:.8rem;color:var(--muted);margin-top:8px}
+#result{margin-top:22px;border-radius:18px;padding:22px;display:none}
+#result.red{background:var(--red);color:#fff}
+#result.amber{background:var(--amber);color:var(--amber-ink)}
+#result.green{background:var(--green);color:#fff}
+#rIcon{font-size:3.4rem;line-height:1}
+#rTitle{font-size:1.6rem;font-weight:bold;line-height:1.2;margin:8px 0}
+#rDo{font-size:1.1rem;font-weight:bold;background:rgba(255,255,255,.2);border-radius:12px;padding:12px;margin:12px 0}
+#result.amber #rDo{background:rgba(0,0,0,.1)}
+#rWhy{padding-left:1.2rem;font-size:.95rem}
+#rWhy li{margin-bottom:4px}
+#result .btn{background:#fff;color:var(--ink)}
+h2{font-size:1.15rem;margin:30px 0 10px}
+#hist{list-style:none;max-height:260px;overflow-y:auto;background:var(--card);border:2px solid var(--line);border-radius:14px}
+#hist li{display:flex;justify-content:space-between;gap:10px;padding:12px;border-bottom:1px solid var(--line);font-size:.85rem}
+#hist li:last-child{border-bottom:none}
+#hist .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+#hist .st{font-weight:bold;white-space:nowrap}
+#hist .empty{color:var(--muted);justify-content:center}
+.tips{background:#DCE6F0;border-radius:14px;padding:16px;margin-top:30px}
+.tips h2{margin:0 0 8px}
+.tips ul{padding-left:1.2rem;font-size:.9rem}
+.tips li{margin-bottom:6px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="pill" role="status"><span id="dot" class="dot"></span><span id="net">Revisando conexión…</span></span>
+    <button class="sizebtn" id="size" type="button" aria-label="Cambiar tamaño de letra">Letra A+</button>
+  </div>
+  <h1>🛡️ Escudo Anti-Fraude</h1>
+  <p>Pega un mensaje o enlace y te decimos si es una estafa.</p>
+</header>
+
+<main>
+  <label class="t" for="inp">Pega aquí el mensaje o enlace:</label>
+  <textarea id="inp" placeholder="Ejemplo: el mensaje que recibiste por WhatsApp, SMS o correo"></textarea>
+
+  <button class="btn main" id="go" type="button">🔍 Revisar ahora</button>
+  <button class="btn alt" id="pic" type="button">📷 Subir captura de pantalla</button>
+  <input type="file" id="file" accept="image/*" hidden>
+  <p class="note" id="demo" hidden>Demostración: en este prototipo la lectura de la imagen es simulada.</p>
+
+  <section id="result" aria-live="polite">
+    <div id="rIcon" aria-hidden="true"></div>
+    <div id="rTitle"></div>
+    <div id="rDo"></div>
+    <ul id="rWhy"></ul>
+    <button class="btn" id="speak" type="button">🔊 Leer en voz alta</button>
+  </section>
+
+  <h2>📋 Mensajes revisados</h2>
+  <ul id="hist"></ul>
+  <button class="btn quiet" id="clear" type="button">🗑️ Borrar lista</button>
+
+  <section class="tips">
+    <h2>💡 Consejos rápidos</h2>
+    <ul>
+      <li>Un banco nunca te pide claves, NIP ni códigos por WhatsApp, SMS o llamada.</li>
+      <li>Si te piden dinero con urgencia, cuelga y llama tú a tu familiar a su número de siempre.</li>
+      <li>Fíjate bien en las letras del enlace: <b>facebok.com</b> no es <b>facebook.com</b>.</li>
+      <li>Si tienes dudas, no hagas clic. Pregunta a alguien de confianza.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const STORE = "escudo.historial";
+let historial = [], lastSpeech = "";
+
+/* ---------- Conexión ---------- */
+function red(){
+  const on = navigator.onLine;
+  $("dot").className = "dot" + (on ? " on" : "");
+  $("net").textContent = on ? "Con internet" : "Sin internet: sigue funcionando";
+}
+addEventListener("online", red); addEventListener("offline", red); red();
+
+/* ---------- Tamaño de letra ---------- */
+let big = false;
+$("size").onclick = () => {
+  big = !big;
+  document.documentElement.style.setProperty("--fs", big ? "26px" : "20px");
+  $("size").textContent = big ? "Letra A−" : "Letra A+";
+};
+
+/* ---------- Reglas de análisis ---------- */
+const MARCAS = {
+  bbva:"bbva.mx", banorte:"banorte.com", santander:"santander.com.mx", banamex:"banamex.com",
+  citibanamex:"banamex.com", hsbc:"hsbc.com.mx", scotiabank:"scotiabank.com.mx", sat:"sat.gob.mx",
+  imss:"imss.gob.mx", cfe:"cfe.mx", telcel:"telcel.com", telmex:"telmex.com",
+  mercadolibre:"mercadolibre.com.mx", mercadopago:"mercadopago.com.mx", paypal:"paypal.com",
+  facebook:"facebook.com", whatsapp:"whatsapp.com", instagram:"instagram.com",
+  amazon:"amazon.com.mx", netflix:"netflix.com", correos:"correosdemexico.gob.mx"
+};
+const ACORTADORES = ["bit.ly","tinyurl.com","cutt.ly","ow.ly","t.ly","is.gd","rb.gy","shorturl.at","goo.gl"];
+const TLD_RAROS = ["xyz","top","click","icu","buzz","online","site","live","shop","work","rest","cfd","sbs","vip","monster"];
+
+const REGLAS = [
+  {w:2, re:/contrase[ñn]a|\bnip\b|\bcvv\b|c[oó]digo de (verificaci[oó]n|seguridad|acceso)|n[uú]mero de (tarjeta|cuenta)|datos bancarios|\btoken\b|clave (de|del)/i,
+   msg:"Te piden claves, códigos o datos de tu tarjeta."},
+  {w:1, re:/urgente|inmediat|[uú]ltimo aviso|hoy mismo|en 24 horas|ser[aá] (bloquead|suspendid|cancelad)|bloquead|suspendid|vence hoy/i,
+   msg:"Te presionan para que actúes rápido."},
+  {w:1, re:/ganaste|has ganado|usted ha ganado|premio|felicidades|sorteo|gratis|regalo|bono/i,
+   msg:"Promete premios, regalos o dinero fácil."},
+  {w:2, re:/dep[oó]sit|transfier|tarjeta de regalo|oxxo|giro|env[ií]a(me)? (dinero|efectivo)|necesito (dinero|ayuda urgente)/i,
+   msg:"Pide dinero o depósitos."},
+  {w:1, re:/reenv[ií]a|comparte (este|con)|env[ií]alo a/i,
+   msg:"Pide reenviarlo a otras personas."},
+  {w:1, re:/hola (abuel|mam[aá]|pap[aá]|t[ií]o)|soy tu (nieto|hijo|sobrin)|cambi[eé] de n[uú]mero|n[uú]mero nuevo/i,
+   msg:"Parece el engaño del 'familiar con número nuevo'."}
+];
+
+function distancia(a,b){
+  const d = Array.from({length:a.length+1},(_,i)=>[i]);
+  for(let j=1;j<=b.length;j++) d[0][j]=j;
+  for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++)
+    d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return d[a.length][b.length];
+}
+
+function extraerEnlaces(txt){
+  const found = txt.match(/\b(?:https?:\/\/)?(?:[a-z0-9-]+\.)+[a-z]{2,6}(?::\d+)?(?:\/[^\s]*)?/gi) || [];
+  const ips = txt.match(/\bhttps?:\/\/\d{1,3}(?:\.\d{1,3}){3}[^\s]*/gi) || [];
+  return [...new Set([...found, ...ips])].map(u => {
+    const http = /^http:\/\//i.test(u);
+    const host = u.replace(/^https?:\/\//i,"").replace(/^www\./i,"").split(/[\/:?#]/)[0].toLowerCase();
+    const p = host.split(".");
+    const reg = (p.length>2 && p[p.length-1].length===2 && ["com","gob","org","net","edu"].includes(p[p.length-2]))
+      ? p.slice(-3).join(".") : p.slice(-2).join(".");
+    return {host, reg, http, tld:p[p.length-1], esIP:/^\d+(\.\d+){3}$/.test(host)};
+  });
+}
+
+function analizar(txt){
+  const s = [], low = txt.toLowerCase();
+  REGLAS.forEach(r => { if(r.re.test(txt)) s.push({w:r.w, msg:r.msg}); });
+  const links = extraerEnlaces(txt);
+
+  links.forEach(l => {
+    if(l.esIP) s.push({w:3, msg:"El enlace usa números en vez de un nombre de página."});
+    if(ACORTADORES.includes(l.reg)) s.push({w:1, msg:"El enlace está acortado y no se ve a dónde lleva."});
+    if(TLD_RAROS.includes(l.tld)) s.push({w:2, msg:"La página termina en ."+l.tld+", muy usada en fraudes."});
+    if(l.http) s.push({w:1, msg:"El enlace no es seguro (empieza con http)."});
+    if(l.host.split(".").length>3 || (l.host.match(/-/g)||[]).length>=2)
+      s.push({w:1, msg:"El nombre de la página es largo y raro."});
+
+    const nombre = l.reg.split(".")[0], compacto = l.host.replace(/-/g,"");
+    for(const [marca, oficial] of Object.entries(MARCAS)){
+      const esOficial = l.host===oficial || l.host.endsWith("."+oficial);
+      if(esOficial) continue;
+      if(marca.length>=4 && compacto.includes(marca)){
+        s.push({w:3, msg:"Dice ser “"+marca+"” pero la página no es la oficial ("+oficial+")."}); break;
+      }
+      if(marca.length>=5 && nombre!==marca && distancia(nombre, marca)<=2){
+        s.push({w:3, msg:"El enlace imita a “"+marca+"” con letras cambiadas."}); break;
+      }
+    }
+  });
+
+  if(links.length){
+    for(const [marca, oficial] of Object.entries(MARCAS)){
+      const menciona = new RegExp("\\b"+marca+"\\b","i").test(low);
+      const hayOficial = links.some(l => l.host===oficial || l.host.endsWith("."+oficial));
+      if(menciona && !hayOficial){
+        s.push({w:2, msg:"Menciona “"+marca+"” pero el enlace no es de esa empresa."}); break;
+      }
+    }
+  }
+
+  const unicos = []; const vistos = new Set();
+  s.forEach(x => { if(!vistos.has(x.msg)){ vistos.add(x.msg); unicos.push(x); } });
+  const total = unicos.reduce((a,x)=>a+x.w,0);
+  return {total, motivos:unicos.map(x=>x.msg), hayEnlace:links.length>0};
+}
+
+/* ---------- Resultado ---------- */
+const NIVELES = {
+  red:{icon:"🔴", titulo:"PELIGRO: parece una estafa", estado:"Peligro 🔴",
+       accion:"No abras el enlace ni respondas. Bórralo. Si ya diste datos, llama a tu banco al número de tu tarjeta."},
+  amber:{icon:"🟡", titulo:"CUIDADO: algo no se ve bien", estado:"Cuidado 🟡",
+       accion:"No hagas clic todavía. Pregunta a un familiar o llama tú a la empresa por su número oficial."},
+  green:{icon:"🟢", titulo:"No vemos señales de alerta", estado:"Sin alertas 🟢",
+       accion:"Esto no garantiza que sea seguro. Si tienes dudas, pregunta a un familiar antes de hacer clic."}
+};
+
+function mostrar(txt){
+  const a = analizar(txt);
+  const n = a.total>=3 ? "red" : a.total>=1 ? "amber" : "green";
+  const N = NIVELES[n];
+  const box = $("result");
+  box.className = n; box.style.display = "block";
+  $("rIcon").textContent = N.icon;
+  $("rTitle").textContent = N.titulo;
+  $("rDo").textContent = "Qué hacer: " + N.accion;
+  const ul = $("rWhy"); ul.textContent = "";
+  const razones = a.motivos.length ? a.motivos : ["No encontramos palabras ni enlaces sospechosos."];
+  razones.forEach(m => { const li = document.createElement("li"); li.textContent = m; ul.appendChild(li); });
+  lastSpeech = N.titulo + ". " + N.accion + " " + (a.motivos.length ? "Motivos: " + a.motivos.join(" ") : "");
+  box.scrollIntoView({behavior:"smooth", block:"start"});
+  historial.unshift({t:txt.slice(0,120), e:N.estado});
+  historial = historial.slice(0,30);
+  guardar(); pintar();
+}
+
+/* ---------- Historial ---------- */
+function guardar(){ try{ localStorage.setItem(STORE, JSON.stringify(historial)); }catch(e){} }
+function cargar(){ try{ historial = JSON.parse(localStorage.getItem(STORE)) || []; }catch(e){ historial = []; } }
+function pintar(){
+  const ul = $("hist"); ul.textContent = "";
+  if(!historial.length){
+    const li = document.createElement("li"); li.className = "empty";
+    li.textContent = "Aún no has revisado nada."; ul.appendChild(li); return;
+  }
+  historial.forEach(h => {
+    const li = document.createElement("li");
+    const t = document.createElement("span"); t.className = "tx"; t.textContent = h.t; t.title = h.t;
+    const e = document.createElement("span"); e.className = "st"; e.textContent = h.e;
+    li.append(t, e); ul.appendChild(li);
+  });
+}
+
+/* ---------- Eventos ---------- */
+$("go").onclick = () => {
+  const t = $("inp").value.trim();
+  if(!t){ $("inp").focus(); $("inp").placeholder = "Primero pega un mensaje o enlace aquí."; return; }
+  $("demo").hidden = true;
+  mostrar(t);
+};
+$("pic").onclick = () => $("file").click();
+$("file").onchange = e => {
+  if(!e.target.files[0]) return;
+  const ejemplos = [
+    "¡Alerta! Su tarjeta ha sido bloqueada. Ingrese a https://banco-seguro-verificacion.net y dé su NIP para desbloquearla.",
+    "Felicidades, ganó un viaje todo pagado. Reclame su premio en http://viajes-gratis-hoy.xyz",
+    "Hola abuelo, cambié de número. Necesito que me hagas un depósito urgente, no le digas a nadie.",
+    "Tu paquete llegará mañana. Seguimiento en https://www.amazon.com.mx/gp/your-account"
+  ];
+  const t = ejemplos[Math.floor(Math.random()*ejemplos.length)];
+  $("inp").value = t; $("demo").hidden = false; e.target.value = "";
+  mostrar(t);
+};
+$("speak").onclick = () => {
+  if(!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(lastSpeech);
+  u.lang = "es-MX"; u.rate = 0.9; speechSynthesis.speak(u);
+};
+$("clear").onclick = () => { historial = []; guardar(); pintar(); };
+
+cargar(); pintar();
+if("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
