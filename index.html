@@ -155,7 +155,15 @@ const REGLAS = [
   {w:1, re:/reenv[ií]a|comparte (este|con)|env[ií]alo a/i,
    msg:"Pide reenviarlo a otras personas."},
   {w:1, re:/hola (abuel|mam[aá]|pap[aá]|t[ií]o)|soy tu (nieto|hijo|sobrin)|cambi[eé] de n[uú]mero|n[uú]mero nuevo/i,
-   msg:"Parece el engaño del 'familiar con número nuevo'."}
+   msg:"Parece el engaño del 'familiar con número nuevo'."},
+  
+  /* NUEVAS REGLAS AGREGADAS */
+  {w:2, re:/recursos humanos|\blinkedin\b|oferta de (empleo|trabajo)|minutos de (tu|su) tiempo|ganar (dinero|ingresos) (extra|desde casa)|(sueldo|salario) diario/i,
+   msg:"Te ofrecen un empleo, dinero fácil o mencionan 'Recursos Humanos'. Es el típico fraude de falsos trabajos."},
+  {w:2, re:/no est[aá] en tus contactos|bloquear.*a[ñn]adir contacto/i,
+   msg:"La captura muestra que es un número desconocido o de empresa no guardado. Mucha precaución."},
+  {w:2, re:/\+(?!52|1(?!\d))\d{2,3}[\s-]?\d{3,}/,
+   msg:"El mensaje viene de un número internacional extraño. Las estafas en WhatsApp suelen usar números de otros países."}
 ];
 
 function distancia(a,b){
