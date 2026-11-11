@@ -65,6 +65,7 @@ h2{font-size:1.15rem;margin:30px 0 10px}
 .tips li{margin-bottom:6px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 <header>
@@ -274,17 +275,38 @@ $("go").onclick = () => {
   mostrar(t);
 };
 $("pic").onclick = () => $("file").click();
-$("file").onchange = e => {
-  if(!e.target.files[0]) return;
-  const ejemplos = [
-    "¡Alerta! Su tarjeta ha sido bloqueada. Ingrese a https://banco-seguro-verificacion.net y dé su NIP para desbloquearla.",
-    "Felicidades, ganó un viaje todo pagado. Reclame su premio en http://viajes-gratis-hoy.xyz",
-    "Hola abuelo, cambié de número. Necesito que me hagas un depósito urgente, no le digas a nadie.",
-    "Tu paquete llegará mañana. Seguimiento en https://www.amazon.com.mx/gp/your-account"
-  ];
-  const t = ejemplos[Math.floor(Math.random()*ejemplos.length)];
-  $("inp").value = t; $("demo").hidden = false; e.target.value = "";
-  mostrar(t);
+$("file").onchange = async e => {
+  const file = e.target.files[0];
+  if(!file) return;
+
+  $("inp").value = "⏳ Leyendo la imagen, por favor espera unos segundos...";
+  $("inp").disabled = true; 
+  $("go").disabled = true;
+  $("demo").hidden = true; 
+  $("result").style.display = "none";
+
+  try {
+    const { data: { text } } = await Tesseract.recognize(
+      file,
+      'spa',
+      { logger: m => console.log(m) } 
+    );
+    
+    const textoLimpio = text.trim();
+    if (!textoLimpio) {
+      $("inp").value = "No pudimos detectar texto en esta imagen. Intenta con una captura más clara.";
+    } else {
+      $("inp").value = textoLimpio;
+      mostrar(textoLimpio);
+    }
+  } catch (error) {
+    $("inp").value = "Hubo un error al intentar leer la captura. Por favor, intenta de nuevo.";
+    console.error("Error de OCR:", error);
+  } finally {
+    $("inp").disabled = false;
+    $("go").disabled = false;
+    e.target.value = ""; 
+  }
 };
 $("speak").onclick = () => {
   if(!("speechSynthesis" in window)) return;
